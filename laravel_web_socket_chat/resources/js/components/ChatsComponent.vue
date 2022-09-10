@@ -63,7 +63,11 @@
         mounted(){
             this.fetchMessages();
 
-
+            Echo.join("chat")
+            .listen("MessageSent",(event) => {
+                console.log(event);
+                // this.messages.push(event.message);
+            });
         },
         created(){
 

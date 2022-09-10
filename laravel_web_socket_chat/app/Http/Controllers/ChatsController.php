@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Message;
+use App\Events\MessageSent;
 use Illuminate\Http\Request;
 
 class ChatsController extends Controller
@@ -30,6 +31,8 @@ class ChatsController extends Controller
             'message' => $request->message
         ]);
         $message = Message::find($sendMessg->id)->load('user');
+
+        broadcast(new MessageSent ($message ) )->toOthers();
 
         if($sendMessg){
             return response()->json([
