@@ -1918,26 +1918,39 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   mounted: function mounted() {
+    var _this = this;
+
     this.fetchMessages();
-    Echo.join("chat").listen("MessageSent", function (event) {
-      console.log(event); // this.messages.push(event.message);
-    });
+    Echo.join('chat').listen('MessageSent', function (event) {
+      _this.messages.unshift(event.message);
+
+      console.log("other=", event);
+    }); // Echo.join(`chat`)
+    // .here((users) => {
+    //     console.log("hre:",users);
+    // })
+    // .joining((user) => {
+    //     console.log(`${user.name} joined`);
+    // })
+    // .leaving((user) => {
+    //     console.log(`${user.name} leaved`);
+    // });
   },
   created: function created() {},
   methods: {
     fetchMessages: function fetchMessages() {
-      var _this = this;
+      var _this2 = this;
 
       axios.get('/messages').then(function (res) {
         // console.log(res.data.data.length);
         if (res.data.status == 'success' && res.data.data.length > 0) {
-          _this.messages = res.data.data;
+          _this2.messages = res.data.data;
         } // console.log(res.data);
 
       });
     },
     onSendMessage: function onSendMessage() {
-      var _this2 = this;
+      var _this3 = this;
 
       if (this.newMessage == "") {
         return false;
@@ -1948,7 +1961,7 @@ __webpack_require__.r(__webpack_exports__);
         'message': this.newMessage
       }).then(function (res) {
         if (res.data.status == "success") {
-          _this2.messages.unshift(res.data.data);
+          _this3.messages.unshift(res.data.data);
         } // console.log(res);
 
       });

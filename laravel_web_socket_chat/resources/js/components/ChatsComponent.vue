@@ -63,11 +63,22 @@
         mounted(){
             this.fetchMessages();
 
-            Echo.join("chat")
-            .listen("MessageSent",(event) => {
-                console.log(event);
-                // this.messages.push(event.message);
-            });
+            Echo.join('chat')
+            .listen('MessageSent', (event) =>{
+                 this.messages.unshift(event.message);
+                console.log("other=",event);
+            } );
+
+            // Echo.join(`chat`)
+            // .here((users) => {
+            //     console.log("hre:",users);
+            // })
+            // .joining((user) => {
+            //     console.log(`${user.name} joined`);
+            // })
+            // .leaving((user) => {
+            //     console.log(`${user.name} leaved`);
+            // });
         },
         created(){
 
