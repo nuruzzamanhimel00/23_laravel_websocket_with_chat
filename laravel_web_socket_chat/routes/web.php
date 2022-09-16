@@ -24,6 +24,9 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
+Route::get('/ckeditor', function(){
+    return view("ckeditor");
+} );
 
 Route::get('/chats', 'ChatsController@index')->name('chats');
 
