@@ -9,7 +9,7 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                   <ul class="list-styled" style="height: 300px;overflow-y: scroll;">
+                   <ul class="list-styled" style="height: 300px;overflow-y: scroll;" v-chat-scroll="{always: false, smooth: true}">
                         <li class="p-2" v-for="(msg, index) in messages" :key="index">
                             <strong>{{msg.user.name}}</strong>
                             {{ msg.message }}
@@ -17,6 +17,7 @@
                    </ul>
                 </div>
                 <input
+                @keydown="onTypingEvent"
                 @keyup.enter="onSendMessage()"
                 v-model="newMessage"
                 type="text"
@@ -24,7 +25,7 @@
                 placeholder="enter your message"
                 class="form-control"
                 >
-                <span class="text-muted p-2"><i>user is typing....</i></span>
+                <span class="text-muted p-2" v-if="activeUser"><i>{{ activeUser.name }} is typing....</i></span>
            </div>
         </div>
         <div class="col-md-4">
@@ -36,8 +37,8 @@
                         </div>
                         <div class="card-bod">
                             <ul class="left-ul">
-                                <li>
-                                    user name
+                                <li v-for="(value, key) in users" :key="key" >
+                                    {{ value.name }}
                                 </li>
                             </ul>
                         </div>
@@ -57,28 +58,47 @@
         data(){
            return {
              messages: [],
-             newMessage:''
+             newMessage:'',
+             users:[],
+             activeUser:false,
+             typeingTimer:false,
            }
         },
         mounted(){
             this.fetchMessages();
 
             Echo.join('chat')
+            .here((users) => {
+                this.users = users;
+                console.log("hre:",users);
+            })
+            .joining((user) => {
+                this.users.push(user);
+                console.log(user ,'joined');
+            })
+            .leaving((user) => {
+               this.users = this.users.filter( (urs) => urs.id != user.id  );
+                console.log(`${user.name} leaved`);
+            })
             .listen('MessageSent', (event) =>{
-                 this.messages.unshift(event.message);
+                 this.messages.push(event.message);
                 console.log("other=",event);
-            } );
+            } )
+            .listenForWhisper('typing', (user) => {
+                this.activeUser = user;
+                // console.log("user",user);
+                if(this.typeingTimer){
+                    console.log("clearTimeout hit");
+                    clearTimeout(this.typeingTimer);
+                }
+                this.typeingTimer = setTimeout(()=>{
+                    console.log("typeingTimer set");
+                     this.activeUser =false;
+                },2000);
+                // console.log(this.typeingTimer);
+            });;
 
-            // Echo.join(`chat`)
-            // .here((users) => {
-            //     console.log("hre:",users);
-            // })
-            // .joining((user) => {
-            //     console.log(`${user.name} joined`);
-            // })
-            // .leaving((user) => {
-            //     console.log(`${user.name} leaved`);
-            // });
+
         },
         created(){
 
@@ -103,10 +123,16 @@
                     'message' : this.newMessage
                 }).then((res)=>{
                     if(res.data.status == "success"){
-                        this.messages.unshift(res.data.data);
+                        this.messages.push(res.data.data);
+                        this.newMessage = "";
                     }
                     // console.log(res);
                 });
+            },
+            onTypingEvent(){
+                // console.log('dd');
+                 Echo.join('chat')
+                 .whisper('typing',this.user);
             }
         }
     }

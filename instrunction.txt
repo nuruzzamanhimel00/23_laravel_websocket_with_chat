@@ -1,0 +1,47 @@
+###################### web socket url ##################
+https://github.com/beyondcode/laravel-websockets
+
+############### Learn FROM #######################
+Youtube playlist:
+https://www.youtube.com/watch?v=-9-OUYVC8sc&list=PL1TrjkMQ8UbWfFUCimQ50CdrR_J7QvEFW&index=7
+
+Bitfums:
+https://www.youtube.com/watch?v=mDnsC-sfG7I ------------->>>>>
+
+########### vue chat scroll plagin ####################
+url: https://www.npmjs.com/package/vue-chat-scroll
+
+
+1) composer require beyondcode/laravel-websockets
+2)php artisan vendor:publish --provider="BeyondCode\LaravelWebSockets\WebSocketsServiceProvider" --tag="migrations"
+3) php artisan migrate
+4) php artisan vendor:publish --provider="BeyondCode\LaravelWebSockets\WebSocketsServiceProvider" --tag="config"
+5) composer require pusher/pusher-php-server "~3.0"
+
+.env file
+BROADCAST_DRIVER=pusher
+
+VVV1
+form config/app.php 
+=provider => BroadcastServiceProvider uncomment (VVVVVVVVVVVVVVV IMportent  bitfums)
+
+config/broadcasting.php
+'pusher' => [
+            'driver' => 'pusher',
+            'key' => env('PUSHER_APP_KEY'),
+            'secret' => env('PUSHER_APP_SECRET'),
+            'app_id' => env('PUSHER_APP_ID'),
+            'options' => [
+                'cluster' => env('PUSHER_APP_CLUSTER'),
+                'useTLS' => true,
+                'host' => '127.0.0.1',
+                'port' => 6001,
+                'scheme' => 'http'
+            ],
+        ],
+
+6) npm install
+
+7) npm install --save-dev laravel-echo pusher-js
+
+8) npm run watch

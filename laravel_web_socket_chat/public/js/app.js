@@ -1914,27 +1914,46 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       messages: [],
-      newMessage: ''
+      newMessage: '',
+      users: [],
+      activeUser: false,
+      typeingTimer: false
     };
   },
   mounted: function mounted() {
     var _this = this;
 
     this.fetchMessages();
-    Echo.join('chat').listen('MessageSent', function (event) {
-      _this.messages.unshift(event.message);
+    Echo.join('chat').here(function (users) {
+      _this.users = users;
+      console.log("hre:", users);
+    }).joining(function (user) {
+      _this.users.push(user);
+
+      console.log(user, 'joined');
+    }).leaving(function (user) {
+      _this.users = _this.users.filter(function (urs) {
+        return urs.id != user.id;
+      });
+      console.log("".concat(user.name, " leaved"));
+    }).listen('MessageSent', function (event) {
+      _this.messages.push(event.message);
 
       console.log("other=", event);
-    }); // Echo.join(`chat`)
-    // .here((users) => {
-    //     console.log("hre:",users);
-    // })
-    // .joining((user) => {
-    //     console.log(`${user.name} joined`);
-    // })
-    // .leaving((user) => {
-    //     console.log(`${user.name} leaved`);
-    // });
+    }).listenForWhisper('typing', function (user) {
+      _this.activeUser = user; // console.log("user",user);
+
+      if (_this.typeingTimer) {
+        console.log("clearTimeout hit");
+        clearTimeout(_this.typeingTimer);
+      }
+
+      _this.typeingTimer = setTimeout(function () {
+        console.log("typeingTimer set");
+        _this.activeUser = false;
+      }, 2000); // console.log(this.typeingTimer);
+    });
+    ;
   },
   created: function created() {},
   methods: {
@@ -1961,10 +1980,16 @@ __webpack_require__.r(__webpack_exports__);
         'message': this.newMessage
       }).then(function (res) {
         if (res.data.status == "success") {
-          _this3.messages.unshift(res.data.data);
+          _this3.messages.push(res.data.data);
+
+          _this3.newMessage = "";
         } // console.log(res);
 
       });
+    },
+    onTypingEvent: function onTypingEvent() {
+      // console.log('dd');
+      Echo.join('chat').whisper('typing', this.user);
     }
   }
 });
@@ -1997,6 +2022,15 @@ var render = function render() {
   }, [_vm._m(0), _vm._v(" "), _c("div", {
     staticClass: "card-body"
   }, [_c("ul", {
+    directives: [{
+      name: "chat-scroll",
+      rawName: "v-chat-scroll",
+      value: {
+        always: false,
+        smooth: true
+      },
+      expression: "{always: false, smooth: true}"
+    }],
     staticClass: "list-styled",
     staticStyle: {
       height: "300px",
@@ -2024,6 +2058,7 @@ var render = function render() {
       value: _vm.newMessage
     },
     on: {
+      keydown: _vm.onTypingEvent,
       keyup: function keyup($event) {
         if (!$event.type.indexOf("key") && _vm._k($event.keyCode, "enter", 13, $event.key, "Enter")) return null;
         return _vm.onSendMessage();
@@ -2033,7 +2068,25 @@ var render = function render() {
         _vm.newMessage = $event.target.value;
       }
     }
-  }), _vm._v(" "), _vm._m(1)])]), _vm._v(" "), _vm._m(2)])]);
+  }), _vm._v(" "), _vm.activeUser ? _c("span", {
+    staticClass: "text-muted p-2"
+  }, [_c("i", [_vm._v(_vm._s(_vm.activeUser.name) + " is typing....")])]) : _vm._e()])]), _vm._v(" "), _c("div", {
+    staticClass: "col-md-4"
+  }, [_c("div", {
+    staticClass: "card"
+  }, [_c("div", {
+    staticClass: "card-body"
+  }, [_c("div", {
+    staticClass: "card card-default"
+  }, [_vm._m(1), _vm._v(" "), _c("div", {
+    staticClass: "card-bod"
+  }, [_c("ul", {
+    staticClass: "left-ul"
+  }, _vm._l(_vm.users, function (value, key) {
+    return _c("li", {
+      key: key
+    }, [_vm._v("\n                                " + _vm._s(value.name) + "\n                            ")]);
+  }), 0)])])])])])])]);
 };
 
 var staticRenderFns = [function () {
@@ -2047,28 +2100,9 @@ var staticRenderFns = [function () {
   var _vm = this,
       _c = _vm._self._c;
 
-  return _c("span", {
-    staticClass: "text-muted p-2"
-  }, [_c("i", [_vm._v("user is typing....")])]);
-}, function () {
-  var _vm = this,
-      _c = _vm._self._c;
-
   return _c("div", {
-    staticClass: "col-md-4"
-  }, [_c("div", {
-    staticClass: "card"
-  }, [_c("div", {
-    staticClass: "card-body"
-  }, [_c("div", {
-    staticClass: "card card-default"
-  }, [_c("div", {
     staticClass: "card-header"
-  }, [_c("b", [_vm._v("USER ONLINE")])]), _vm._v(" "), _c("div", {
-    staticClass: "card-bod"
-  }, [_c("ul", {
-    staticClass: "left-ul"
-  }, [_c("li", [_vm._v("\n                                user name\n                            ")])])])])])])]);
+  }, [_c("b", [_vm._v("USER ONLINE")])]);
 }];
 render._withStripped = true;
 
@@ -44230,6 +44264,18 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 
 /***/ }),
 
+/***/ "./node_modules/vue-chat-scroll/dist/index.js":
+/*!****************************************************!*\
+  !*** ./node_modules/vue-chat-scroll/dist/index.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+!function(e,n){ true?module.exports=n():undefined}(this,function(){"use strict";function o(e,n){var t=n||e.scrollHeight-e.clientHeight;"function"==typeof e.scroll?e.scroll({top:t}):e.scrollTop=t}function i(e,n){if(!1!==n.enabled)if(!1!==n.handlePrepend){var t=0===e.scrollTop&&s.has(e)&&e.scrollHeight-s.get(e);o(e,t),s.set(e,e.scrollHeight)}else o(e)}var r=function(){return(r=Object.assign||function(e){for(var n,t=1,o=arguments.length;t<o;t++)for(var i in n=arguments[t])Object.prototype.hasOwnProperty.call(n,i)&&(e[i]=n[i]);return e}).apply(this,arguments)},l={enabled:!0,handlePrepend:!1},c=new WeakMap,s=new WeakMap,n={inserted:function(e,n){var t=r(r({},l),n.value);i(e,t)},update:function(e,n){c.has(e)&&c.get(e).disconnect();var t=r(r({},l),n.value),o=new MutationObserver(function(){i(e,t)});o.observe(e,{childList:!0,subtree:!0}),c.set(e,o)}},e={install:function(e){e.directive("chat-scroll",n)}};return"undefined"!=typeof window&&window.Vue&&window.Vue.use(e),e});
+
+
+/***/ }),
+
 /***/ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js":
 /*!********************************************************************!*\
   !*** ./node_modules/vue-loader/lib/runtime/componentNormalizer.js ***!
@@ -56190,9 +56236,13 @@ module.exports = function(module) {
 /*!*****************************!*\
   !*** ./resources/js/app.js ***!
   \*****************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var vue_chat_scroll__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue-chat-scroll */ "./node_modules/vue-chat-scroll/dist/index.js");
+/* harmony import */ var vue_chat_scroll__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue_chat_scroll__WEBPACK_IMPORTED_MODULE_0__);
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -56201,6 +56251,8 @@ module.exports = function(module) {
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
 window.Vue = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
+
+Vue.use(vue_chat_scroll__WEBPACK_IMPORTED_MODULE_0___default.a);
 Vue.component('chats-component', __webpack_require__(/*! ./components/ChatsComponent.vue */ "./resources/js/components/ChatsComponent.vue")["default"]);
 var app = new Vue({
   el: '#app'
