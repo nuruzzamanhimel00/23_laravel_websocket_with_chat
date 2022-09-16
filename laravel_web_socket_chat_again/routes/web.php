@@ -25,7 +25,9 @@ Route::get('/', function () {
 Auth::routes();
 
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/chats', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+
 
 Route::get('/fetch-messages', [MessageController::class, 'fetchAllmessages'])->name('fetch.messaes');
 Route::post('/send-messages', [MessageController::class, 'sendMessages'])->name('send.messaes');

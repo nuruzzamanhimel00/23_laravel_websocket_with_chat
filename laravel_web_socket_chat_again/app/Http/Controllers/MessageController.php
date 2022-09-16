@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use Illuminate\Http\Request;
+use App\Events\MessageSentEvent;
 
 class MessageController extends Controller
 {
@@ -27,11 +28,14 @@ class MessageController extends Controller
             'user_id' => $request->user_id,
             'message' => $request->message
         ]);
-        $messages = Message::with('user')->find($messageCreate->id);
-        if($messages){
+        $message = Message::with('user')->find($messageCreate->id);
+
+        broadcast( new MessageSentEvent($message) )->toOthers();
+
+        if($message){
             return response()->json([
                 'status' => 'success',
-                'data' => $messages
+                'data' => $message
             ]);
         }
     }
